@@ -15,7 +15,7 @@ GPIO17 ── button ── GND        (internal pull-up, INPUT_PULLUP)
 ## What it does
 
 - The LED blinks every 500 ms.
-- The button cycles the mode: **Blink → On → Off → Blink**.
+- The button cycles the mode: **Blink → On → Off → Blink**, printing the new mode.
 - Every 1000 iterations the average duration of one `loop()` pass is printed
   over serial.
 
@@ -63,12 +63,18 @@ baud.
 ## Serial output
 
 ```
-(paste real output here)
+mode:DIO, clock div:1
+loop: 2 us
+loop: 2 us
+loop: 2 us
+loop: 2 us
+loop: 2 us
+loop: 2 us
 ```
 
 ## Footprint
 
 ```
 RAM:   19 460 bytes (5.9 %)
-Flash: 266 605 bytes (4.1 %)
+Flash: 266 697 bytes (4.1 %)
 ```

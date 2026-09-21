@@ -57,6 +57,16 @@ Mode nextMode(Mode m) {
     return Mode::Blink;
 }
 
+const char *modeName(Mode m) {
+    switch (m) {
+        case Mode::Blink: return "blink";
+        case Mode::On: return "on";
+        case Mode::Off: return "off";
+    }
+
+    return "?";
+}
+
 void setup() {
     Serial.begin(Config::BAUD);
 
@@ -88,6 +98,7 @@ void loop() {
     if (pressed && now - lastPress >= Config::DEBOUNCE_MS) {
         lastPress = now;
         mode = nextMode(mode);
+        Serial.printf("mode: %s\n", modeName(mode));
     }
 
     switch (mode) {
