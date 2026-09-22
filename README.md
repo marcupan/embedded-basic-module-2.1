@@ -16,8 +16,12 @@ GPIO17 ── button ── GND        (internal pull-up, INPUT_PULLUP)
 
 - The LED blinks every 500 ms.
 - The button cycles the mode: **Blink → On → Off → Blink**, printing the new mode.
-- Every 1000 iterations the average duration of one `loop()` pass is printed
-  over serial.
+- Every 1000 iterations the average and the worst-case duration of one `loop()`
+  pass are printed over serial. The figure is the period between two `loop()`
+  entries, so it includes the serial print and the framework overhead between
+  calls. The average alone spreads one slow pass over a thousand fast ones and
+  hides it, which is why the maximum is reported next to it — on a
+  microcontroller the worst case is the number that matters.
 
 ## Requirements covered
 
@@ -63,18 +67,30 @@ baud.
 ## Serial output
 
 ```
-mode:DIO, clock div:1
-loop: 2 us
-loop: 2 us
-loop: 2 us
-loop: 2 us
-loop: 2 us
-loop: 2 us
+loop: avg 2 us, max 25 us
+loop: avg 2 us, max 25 us
+loop: avg 2 us, max 25 us
+mode: on
+loop: avg 2 us, max 33 us
+loop: avg 2 us, max 24 us
+loop: avg 2 us, max 24 us
+loop: avg 2 us, max 24 us
+loop: avg 2 us, max 25 us
+loop: avg 2 us, max 24 us
+loop: avg 2 us, max 24 us
 ```
+
+Measured on the board: a bare pass takes about 2 us, while the worst pass in
+each window is 24-25 us — that is the one that ran `Serial.printf`. A single
+serial print therefore costs roughly 22 us, about ten ordinary passes. The
+window containing a button event peaks at 33 us, because that pass printed
+twice. Over 30 seconds the program emitted 12 463 lines, i.e. about 415 000
+`loop()` passes per second. None of this is visible in the average, which stays
+at 2 us throughout.
 
 ## Footprint
 
 ```
-RAM:   19 460 bytes (5.9 %)
-Flash: 266 697 bytes (4.1 %)
+RAM:   19 468 bytes (5.9 %)
+Flash: 266 753 bytes (4.1 %)
 ```

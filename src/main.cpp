@@ -81,9 +81,25 @@ void loop() {
     static uint32_t lastPress = 0;
     static uint32_t iterations = 0;
     static uint32_t sumUs = 0;
+    static uint32_t maxUs = 0;
+    static uint32_t lastUs = 0;
 
-    const uint32_t startUs = micros();
+    const uint32_t nowUs = micros();
     const uint32_t now = millis();
+
+    // Період між двома входами в loop(). Так у вимір потрапляє все:
+    // і друк у Serial, і службовий час ядра між викликами.
+    if (lastUs != 0) {
+        const uint32_t dt = nowUs - lastUs;
+
+        sumUs += dt;
+        if (dt > maxUs)
+            maxUs = dt;
+
+        iterations++;
+    }
+
+    lastUs = nowUs;
 
     // Забираємо прапорець так, щоб переривання не влізло між читанням і скиданням.
     bool pressed = false;
@@ -118,12 +134,14 @@ void loop() {
             break;
     }
 
-    sumUs += micros() - startUs;
-    iterations++;
-
     if (iterations >= Config::STATS_EVERY) {
-        Serial.printf("loop: %lu us\n", (unsigned long)(sumUs / iterations));
+        // Середнє розмазує рідкісний довгий оберт по тисячі коротких,
+        // тому поруч друкуємо максимум — в embedded важливий найгірший випадок.
+        Serial.printf("loop: avg %lu us, max %lu us\n", (unsigned long)(sumUs / iterations),
+                      (unsigned long)maxUs);
+
         iterations = 0;
         sumUs = 0;
+        maxUs = 0;
     }
 }
