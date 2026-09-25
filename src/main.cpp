@@ -1,4 +1,4 @@
-// Модуль 2.1 — Blink на ESP32-S3 у стилі embedded C++
+// Модуль 2.1: Blink на ESP32-S3
 // GPIO18 -> 220 Ом -> LED -> GND
 // GPIO17 -> кнопка -> GND (внутрішня підтяжка)
 #include <Arduino.h>
@@ -42,7 +42,7 @@ private:
 
 Led led(Config::LED_PIN);
 
-// Прапорець від переривання: пишеться в ISR, читається в loop().
+// прапорець кнопки: ставить ISR, забирає loop()
 volatile bool buttonFlag = false;
 
 void IRAM_ATTR onButton() { buttonFlag = true; }
@@ -87,8 +87,7 @@ void loop() {
     const uint32_t nowUs = micros();
     const uint32_t now = millis();
 
-    // Період між двома входами в loop(). Так у вимір потрапляє все:
-    // і друк у Serial, і службовий час ядра між викликами.
+    // час між двома входами в loop(), разом із друком у Serial
     if (lastUs != 0) {
         const uint32_t dt = nowUs - lastUs;
 
@@ -101,7 +100,7 @@ void loop() {
 
     lastUs = nowUs;
 
-    // Забираємо прапорець так, щоб переривання не влізло між читанням і скиданням.
+    // забираємо прапорець з вимкненими перериваннями
     bool pressed = false;
     noInterrupts();
     if (buttonFlag) {
@@ -110,7 +109,7 @@ void loop() {
     }
     interrupts();
 
-    // Антидребезг у loop(), а не в ISR.
+    // антидребезг
     if (pressed && now - lastPress >= Config::DEBOUNCE_MS) {
         lastPress = now;
         mode = nextMode(mode);
@@ -135,8 +134,7 @@ void loop() {
     }
 
     if (iterations >= Config::STATS_EVERY) {
-        // Середнє розмазує рідкісний довгий оберт по тисячі коротких,
-        // тому поруч друкуємо максимум — в embedded важливий найгірший випадок.
+        // середнє і максимум
         Serial.printf("loop: avg %lu us, max %lu us\n", (unsigned long)(sumUs / iterations),
                       (unsigned long)maxUs);
 
